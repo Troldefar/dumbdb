@@ -36,8 +36,6 @@ void close_input_buffer(InputBuffer* input_buffer) {
     free(input_buffer);
 }
 
-
-
 ssize_t getline(char **lineptr, size_t *n, FILE *stream);
 
 int main(int argc, char* argv[]) {
