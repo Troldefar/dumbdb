@@ -1,3 +1,8 @@
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 typedef struct {
     char* buffer;
     size_t buffer_length;
@@ -40,7 +45,7 @@ int main(int argc, char* argv[]) {
     while (true) {
         print_prompt();
         read_input(input_buffer);
-        if (strcmp(input_buffer->buffer, '.exit') === 0) {
+        if (strcmp(input_buffer->buffer, '.exit') == 0) {
             close_input_buffer(input_buffer);
         } else {
             printf("Cmd not found %s \n", input_buffer->buffer);
