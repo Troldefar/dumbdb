@@ -9,8 +9,13 @@ typedef struct {
     ssize_t input_length;
 } InputBuffer;
 
+typedef enum {
+    STATEMENT_INSERT,
+    STATEMENT_SELECT
+} StatementType;
+
 typedef struct {
-    StatementType type
+    StatementType type;
 } Statement;
 
 typedef enum {
@@ -22,11 +27,6 @@ typedef enum {
     PREPARE_SUCCESS,
     PREPARE_UNRECOGNIZED_STATEMENT
 } PrepareResult;
-
-typedef enum {
-    STATEMENT_INSERT,
-    STATEMENT_SELECT
-} StatementType;
 
 InputBuffer* new_input_buffer() {
     InputBuffer* input_buffer = (InputBuffer*)malloc(sizeof(InputBuffer));
@@ -96,7 +96,7 @@ int main(int argc, char* argv[]) {
             exit(EXIT_SUCCESS);
         }
 
-        if (input_buffer->buffer[0] == ".") {
+        if (input_buffer->buffer[0] == '.') {
             switch (do_meta_command(input_buffer)) {
                 case (META_COMMAND_SUCCESS):
                     continue;
