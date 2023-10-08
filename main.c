@@ -72,6 +72,17 @@ PrepareResult prepare_statement(InputBuffer* input_buffer, Statement* statement)
     return PREPARE_UNRECOGNIZED_STATEMENT;
 }
 
+void execute_statement(Statement* statement) {
+    switch (statement->type) {
+        case (STATEMENT_INSERT):
+            printf("Insert");
+            break;
+        case (STATEMENT_SELECT):
+            printf("Select");
+            break;
+    }
+}
+
 ssize_t getline(char **lineptr, size_t *n, FILE *stream);
 
 int main(int argc, char* argv[]) {
