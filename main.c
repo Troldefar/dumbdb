@@ -1,3 +1,5 @@
+#include <errno.h>
+#include <fcntl.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -111,6 +113,29 @@ void close_input_buffer(InputBuffer* input_buffer) {
     free(input_buffer->buffer);
     free(input_buffer);
 };
+
+void* get_page(Pager* pager, uint32_t page_num) {
+    if (page_num > TABLE_MAX_PAGES) {
+        printf("Out of bounds %d > %d \n", page_num, TABLE_MAX_PAGES);
+        exit(EXIT_FAILURE);
+    }
+    // Check for cache miss
+    if (pager->pages[page_num] == NULL) {
+        void* page = malloc(PAGE_SIZE);
+        uint32_t num_pages = pager->file_length / PAGE_SIZE;
+        if (pager->file_length % PAGE_SIZE) num_pages += 1;
+        if (page_num <= num_pages) {
+            lseek(pager->file_descriptor, page_num * PAGE_SIZE, SEEK_SET);
+            ssize_t bytes_read = read(pager->file_descriptor, page, PAGE_SIZE);
+            if (bytes_read == -1) {
+                printf("Error reading the file: %d \n", errno);
+                exit(EXIT_FAILURE);
+            }
+        }
+        pager->pages[page_num] = page;
+    }
+    return pager->pages[page_num]
+}
 
 void* row_slot(Table* table, uint32_t row_num) {
     uint32_t page_num = row_num / ROWS_PER_PAGE;
