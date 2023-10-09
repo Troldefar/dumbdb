@@ -134,7 +134,51 @@ void* get_page(Pager* pager, uint32_t page_num) {
         }
         pager->pages[page_num] = page;
     }
-    return pager->pages[page_num]
+    return pager->pages[page_num];
+}
+
+/**
+ * On application exit we want to flush the page cache to the disk
+ * Close the file
+ * Free memory that we've been using
+*/
+
+void db_close(Table* table) {
+    Pager* pager = table->pager;
+    uint32_t num_full_pages = table->num_rows / ROWS_PER_PAGE;
+    for (u_int32_t i = 0; i < num_full_pages; i++) {
+        if (pager->pages[i] == NULL) continue;
+        pager_flush(pager, i, PAGE_SIZE);
+        free(pager->pages[i]);
+        pager->pages[i] = NULL;
+    }
+
+    uint32_t num_additional_rows = table->num_rows % ROWS_PER_PAGE;
+    if (num_additional_rows > 0) {
+        uint32_t page_num = num_full_pages;
+        if (pager->pages[page_num] != NULL) {
+            pager_flush(pager, page_num, num_additional_rows * ROW_SIZE);
+            free(pager->pages[page_num]);
+            pager->pages[page_num] = NULL;
+        }
+    }
+
+    int try_close = close(pager->file_descriptor);
+    if (try_close == -1) {
+        printf("Error closing file");
+        exit(EXIT_FAILURE);
+    }
+
+    for(u_int32_t i = 0; i < TABLE_MAX_PAGES; i++) {
+        void* page = pager->pages[i];
+        if (page) {
+            free(page);
+            pager->pages[i] = NULL;
+        }
+    }
+    
+    free(pager);
+    free(table);
 }
 
 void* row_slot(Table* table, uint32_t row_num) {
@@ -145,8 +189,11 @@ void* row_slot(Table* table, uint32_t row_num) {
     return page + byte_offset;
 }
 
-MetaCommandResult do_meta_command(InputBuffer* input_buffer) {
-    if (strcmp(input_buffer->buffer, ".exit") == 0) exit(EXIT_SUCCESS);
+MetaCommandResult do_meta_command(InputBuffer* input_buffer, Table* table) {
+    if (strcmp(input_buffer->buffer, ".exit") == 0) {
+        db_close(table);
+        exit(EXIT_SUCCESS);
+    };
     return META_COMMAND_UNRECOGNIZED_COMMAND;
 };
 
