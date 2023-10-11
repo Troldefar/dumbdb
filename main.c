@@ -305,7 +305,11 @@ Table* db_open(const char* filename) {
     return table;
 }
 
-void handleIO(char* argv) {
+int main(int argc, char* argv[]) {
+    if (argc < 2) {
+        printf("Usage: db filename \n");
+        exit(EXIT_FAILURE);
+    }
     char* filename = argv[1];
     Table* table = db_open(filename);
     InputBuffer* input_buffer = new_input_buffer();
@@ -355,12 +359,4 @@ void handleIO(char* argv) {
                 break;
         }
     }
-}
-
-int main(int argc, char* argv[]) {
-    if (argc < 2) {
-        printf("Usage: db filename \n");
-        exit(EXIT_FAILURE);
-    }
-    handleIO(argv);
 };
