@@ -138,6 +138,27 @@ void* get_page(Pager* pager, uint32_t page_num) {
     return pager->pages[page_num];
 }
 
+void page_flush(Pager* pager, uint32_t page_num, uint32_t size) {
+    if (pager->pages[page_num] == NULL) {
+        printf("Tried to flush a null page \n");
+        exit(EXIT_FAILURE);
+    }
+
+    off_t offset = lseek(pager->file_descriptor, page_num * PAGE_SIZE, SEEK_SET);
+
+    if (offset == -1) {
+        printf("Error seeking %d \n", errno);
+        exit(EXIT_FAILURE);
+    }
+
+    ssize_t bytes_written = write(pager->file_descriptor, pager->pages[page_num], size);
+
+    if (bytes_written == -1) {
+        printf("Error writing %d \n", errno);
+        exit(EXIT_FAILURE);
+    }
+}
+
 /**
  * On application exit we want to flush the page cache to the disk
  * Close the file
@@ -180,27 +201,6 @@ void db_close(Table* table) {
     
     free(pager);
     free(table);
-}
-
-void page_flush(Pager* pager, uint32_t page_num, uint32_t size) {
-    if (pager->pages[page_num] == NULL) {
-        printf("Tried to flush a null page \n");
-        exit(EXIT_FAILURE);
-    }
-
-    off_t offset = lseek(pager->file_descriptor, page_num * PAGE_SIZE, SEEK_SET);
-
-    if (offset == -1) {
-        printf("Error seeking %d \n", errno);
-        exit(EXIT_FAILURE);
-    }
-
-    ssize_t bytes_written = write(pager->file_descriptor, pager->pages[page_num], size);
-
-    if (bytes_written == -1) {
-        printf("Error writing %d \n", errno);
-        exit(EXIT_FAILURE);
-    }
 }
 
 void* row_slot(Table* table, uint32_t row_num) {
