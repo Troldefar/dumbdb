@@ -283,7 +283,7 @@ ssize_t getline(char **lineptr, size_t *n, FILE *stream);
 Pager* pager_open(const char* filename) {
     int fd = open(filename, O_RDWR | O_CREAT | S_IWUSR | S_IRUSR);
     if (fd == -1 ) {
-        printf("No file \n");
+        printf("No file was found \n");
         exit(EXIT_FAILURE);
     }
     off_t file_length = lseek(fd, 0, SEEK_END);
